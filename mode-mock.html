@@ -71,14 +71,13 @@
     clip-path:polygon(52% 0, 100% 0, 100% 100%, 48% 100%);}
   #logoLayer{position:absolute; left:-108px; top:-156px; width:216px; height:312px; display:none;}
   #logoLayer img{position:absolute; left:0; top:0; width:216px; height:312px; will-change:transform;}
-  /* ---- tint swatches (bottom-right, unlabeled) ---- */
-  #picker{position:fixed; right:12px; bottom:calc(12px + env(safe-area-inset-bottom));
-    display:flex; gap:9px; z-index:60;}
-  .pbtn{width:26px; height:26px; border-radius:50%; border:2px solid #fff;
-    box-shadow:0 1px 4px rgba(0,0,0,.35); padding:0; cursor:pointer;}
+  /* ---- tint swatches (bottom-right of the watch section, live mode only) ---- */
+  .swrow{display:flex; justify-content:flex-end; gap:7px; margin-top:10px;}
+  .pbtn{width:18px; height:18px; border-radius:50%; border:2px solid #fff;
+    box-shadow:0 1px 3px rgba(0,0,0,.35); padding:0; cursor:pointer;}
   #pickViolet{background:#cdc3ee;}
   #pickNavy{background:#1e2542;}
-  .pbtn.active{box-shadow:0 0 0 2px #fff, 0 0 0 4px #8a8578, 0 1px 4px rgba(0,0,0,.35);}
+  .pbtn.active{box-shadow:0 0 0 2px #fff, 0 0 0 3px #8a8578, 0 1px 3px rgba(0,0,0,.35);}
 </style>
 </head>
 <body>
@@ -94,11 +93,6 @@
       <img id="halfR" alt="">
     </div>
   </div>
-</div>
-
-<div id="picker">
-  <button class="pbtn" id="pickViolet" aria-label="紫"></button>
-  <button class="pbtn" id="pickNavy" aria-label="ネイビー"></button>
 </div>
 
 <script>
@@ -142,7 +136,11 @@ var LIVE_HTML = `
   <div class="card"><div><div class="time">19:00</div><div class="datelab">11/20（金）</div><div class="poster"></div></div>
     <div><div class="badges"><span class="badge site">Tiget</span></div>
     <div class="name">「SELENE STADIUM」</div>
-    <div class="meta">2026/11/20　白金高輪SELENE b2<br>支払方法： クレジットカード／コンビニ払い</div></div></div>`;
+    <div class="meta">2026/11/20　白金高輪SELENE b2<br>支払方法： クレジットカード／コンビニ払い</div></div></div>
+  <div class="sec"><h3>監視対象リスト</h3>
+    <span class="fchip on">強がりセンセーション</span><span class="fchip on">クモリノチ。</span><span class="fchip on">手羽先センセーション</span><span class="fchip on">アイドル革命</span>
+    <div class="swrow"><button class="pbtn" id="pickViolet" aria-label="紫" onclick="setTint('#cdc3ee','violet')"></button><button class="pbtn" id="pickNavy" aria-label="ネイビー" onclick="setTint('#1e2542','navy')"></button></div>
+  </div>`;
 
 var POLY = [[236,0],[111,125],[108.5,134],[108.5,186],[104,192],[6,296]];
 function boltPoints(ox, oy){
@@ -191,13 +189,13 @@ function setTint(color, btn){
   tintName = btn;
   try { localStorage.setItem('modeMockTint', btn); } catch (e) {}
   document.documentElement.style.setProperty('--tint', color);
-  document.getElementById('pickNavy').classList.toggle('active', btn==='navy');
-  document.getElementById('pickViolet').classList.toggle('active', btn==='violet');
+  var pn = document.getElementById('pickNavy'), pv = document.getElementById('pickViolet');
+  if (pn) pn.classList.toggle('active', btn==='navy');
+  if (pv) pv.classList.toggle('active', btn==='violet');
   applyBodyClass();
 }
-document.getElementById('pickNavy').onclick = function(){ setTint(tintName === 'navy' ? '#1e2542' : '#cdc3ee', tintName); };
-document.getElementById('pickViolet').onclick = function(){ setTint('#cdc3ee','violet'); };
 setTint(tintName === 'navy' ? '#1e2542' : '#cdc3ee', tintName);
+function refreshSwatches(){ setTint(tintName === 'navy' ? '#1e2542' : '#cdc3ee', tintName); }
 
 function wait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
 
@@ -226,6 +224,7 @@ async function switchMode(){
   mode = (mode === 'sale') ? 'live' : 'sale';
   app.innerHTML = (mode === 'sale') ? SALE_HTML : LIVE_HTML;
   applyBodyClass();
+  refreshSwatches();
 
   /* spin (~0.7s): disc + logo rotate clockwise together around one shared center */
   colL.style.display='none'; colR.style.display='none';
