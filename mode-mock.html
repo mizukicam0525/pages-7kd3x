@@ -213,8 +213,8 @@ async function switchMode(){
   /* enter (~0.5s): colors + halves slide in */
   var e1 = colL.animate([{transform:'translateX(-106%)'},{transform:'translateX(0)'}],{duration:500,easing:'cubic-bezier(.22,.9,.3,1)',fill:'forwards'});
   var e2 = colR.animate([{transform:'translateX(106%)'},{transform:'translateX(0)'}],{duration:500,easing:'cubic-bezier(.22,.9,.3,1)',fill:'forwards'});
-  var e3 = hL.animate([{transform:'translateX(-62vw)'},{transform:'translateX(0)'}],{duration:500,easing:'cubic-bezier(.22,.9,.3,1)',fill:'forwards'});
-  var e4 = hR.animate([{transform:'translateX(62vw)'},{transform:'translateX(0)'}],{duration:500,easing:'cubic-bezier(.22,.9,.3,1)',fill:'forwards'});
+  var e3 = hL.animate([{transform:'translateX(-106vw)'},{transform:'translateX(0)'}],{duration:500,easing:'cubic-bezier(.22,.9,.3,1)',fill:'forwards'});
+  var e4 = hR.animate([{transform:'translateX(106vw)'},{transform:'translateX(0)'}],{duration:500,easing:'cubic-bezier(.22,.9,.3,1)',fill:'forwards'});
   await Promise.all([e1.finished, e2.finished, e3.finished, e4.finished]);
   await wait(60);
 
@@ -235,8 +235,8 @@ async function switchMode(){
   colL.style.display='block'; colR.style.display='block';
   var x1 = colL.animate([{transform:'translateX(0)'},{transform:'translateX(-106%)'}],{duration:450,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
   var x2 = colR.animate([{transform:'translateX(0)'},{transform:'translateX(106%)'}],{duration:450,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
-  var x3 = hL.animate([{transform:'translateX(0)'},{transform:'translateX(-62vw)'}],{duration:450,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
-  var x4 = hR.animate([{transform:'translateX(0)'},{transform:'translateX(62vw)'}],{duration:450,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
+  var x3 = hL.animate([{transform:'translateX(0)'},{transform:'translateX(-106vw)'}],{duration:450,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
+  var x4 = hR.animate([{transform:'translateX(0)'},{transform:'translateX(106vw)'}],{duration:450,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
   await Promise.all([x1.finished, x2.finished, x3.finished, x4.finished]);
 
   fx.classList.remove('on');
