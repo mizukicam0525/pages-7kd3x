@@ -33,6 +33,16 @@
     if (v === 'violet' || v === 'navy') {
       try { localStorage.setItem('ticketListTint', v); } catch (err) {}
     }
+    // 前回データの即時表示用: 本体から届いた前回データを保存し、
+    // 起動時に本体から求められたら保存分を送り返す。
+    if (e.data && e.data.ticketListCacheSave) {
+      try { localStorage.setItem('ticketListCache', e.data.ticketListCacheSave); } catch (err) {}
+    }
+    if (e.data && e.data.ticketListCacheRequest && e.source) {
+      var c = '';
+      try { c = localStorage.getItem('ticketListCache') || ''; } catch (err) {}
+      if (c) { try { e.source.postMessage({ ticketListCacheData: c }, '*'); } catch (err) {} }
+    }
   });
 </script>
 </body>
