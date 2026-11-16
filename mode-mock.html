@@ -163,15 +163,18 @@ function polyStr(pts, w, h, left){
   if (left) return 'polygon(0% 0%, ' + body.join(', ') + ', 0% 100%)';
   return 'polygon(' + body.join(', ') + ', 100% 100%, 100% 0%)';
 }
+function shifted(pts, dx){
+  return pts.map(function(p){ return [p[0]+dx, p[1]]; });
+}
 function applyClips(){
   var W = window.innerWidth, H = window.innerHeight;
   var pts = boltPoints(W/2-108, H*0.44-156);
   document.getElementById('colL').style.clipPath = polyStr(pts, W, H, true);
-  document.getElementById('colR').style.clipPath = polyStr(pts, W, H, false);
+  document.getElementById('colR').style.clipPath = polyStr(shifted(pts, 2), W, H, false);
   var D = 2.6 * Math.max(W, H);
   var dpts = boltPoints(D/2-108, D/2-156);
   document.querySelector('#disc .dL').style.clipPath = polyStr(dpts, D, D, true);
-  document.querySelector('#disc .dR').style.clipPath = polyStr(dpts, D, D, false);
+  document.querySelector('#disc .dR').style.clipPath = polyStr(shifted(dpts, 2), D, D, false);
 }
 window.addEventListener('resize', applyClips);
 applyClips();
@@ -233,10 +236,10 @@ async function switchMode(){
   /* exit (~0.45s): colors leave with the halves, destination revealed from the center */
   disc.style.display='none';
   colL.style.display='block'; colR.style.display='block';
-  var x1 = colL.animate([{transform:'translateX(0)'},{transform:'translateX(-106%)'}],{duration:450,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
-  var x2 = colR.animate([{transform:'translateX(0)'},{transform:'translateX(106%)'}],{duration:450,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
-  var x3 = hL.animate([{transform:'translateX(0)'},{transform:'translateX(-106vw)'}],{duration:450,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
-  var x4 = hR.animate([{transform:'translateX(0)'},{transform:'translateX(106vw)'}],{duration:450,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
+  var x1 = colL.animate([{transform:'translateX(0)'},{transform:'translateX(-106%)'}],{duration:650,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
+  var x2 = colR.animate([{transform:'translateX(0)'},{transform:'translateX(106%)'}],{duration:650,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
+  var x3 = hL.animate([{transform:'translateX(0)'},{transform:'translateX(-106vw)'}],{duration:650,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
+  var x4 = hR.animate([{transform:'translateX(0)'},{transform:'translateX(106vw)'}],{duration:650,easing:'cubic-bezier(.55,.06,.68,.4)',fill:'forwards'});
   await Promise.all([x1.finished, x2.finished, x3.finished, x4.finished]);
 
   fx.classList.remove('on');
