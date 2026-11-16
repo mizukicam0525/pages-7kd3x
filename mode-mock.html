@@ -42,12 +42,12 @@
   .badges{display:flex; gap:4px; flex-wrap:wrap;}
   .badge{font-size:10px; font-weight:700; border-radius:999px; padding:2px 7px;}
   .badge.main{background:var(--accent); color:#fff;}
-  .badge.site{background:var(--soft); color:var(--accent);}
+  .badge.site{background:var(--soft); color:var(--accent-text, var(--accent));}
   .name{font-size:14px; font-weight:700; margin-top:4px; line-height:1.4;}
   .meta{font-size:11px; color:var(--sub); margin-top:2px; line-height:1.5;}
   /* ---- live-mode themes (destination tone follows the picker) ---- */
   body.live.violet{ background:#f0eef7; --accent:#5a4ea8; --soft:#e6e1f5; --chip:#e9e6f2; }
-  body.live.navy{ background:#1e2542; --accent:#5b8cff; --soft:#2d3a68; --chip:#2a3358; }
+  body.live.navy{ background:#1e2542; --accent:#4576d6; --accent-text:#c2d4ff; --soft:#2e3c6b; --chip:#2a3358; }
   body.live.navy h1{ color:#f2f4ff; }
   body.live.navy .updated, body.live.navy .note, body.live.navy .slot{ color:#a8b2d4; }
   body.live.navy .hero{ background:#2d3a68; border-color:#3d4a7d; }
@@ -60,17 +60,16 @@
   #fx.on{display:block;}
   .colPanel{position:absolute; top:0; bottom:0; width:100%; will-change:transform;}
   #colL{background:var(--cream);
-    clip-path:polygon(0 0, 54% 0, 54% 38%, 46% 62%, 46% 100%, 0 100%);}
+    clip-path:polygon(0 0, 54% 0, 46% 100%, 0 100%);}
   #colR{background:var(--tint);
-    clip-path:polygon(54% 0, 100% 0, 100% 100%, 46% 100%, 46% 62%, 54% 38%);}
-  #disc{position:absolute; width:260vmax; height:260vmax; left:50%; top:50%;
-    margin-left:-130vmax; margin-top:-130vmax; display:none; will-change:transform;}
+    clip-path:polygon(54% 0, 100% 0, 100% 100%, 46% 100%);}
+  #rotator{position:absolute; left:50%; top:44%; width:0; height:0; will-change:transform;}
+  #disc{position:absolute; width:260vmax; height:260vmax; left:-130vmax; top:-130vmax; display:none;}
   #disc .dL{position:absolute; inset:0; background:var(--cream);
-    clip-path:polygon(0 0, 52% 0, 52% 38%, 48% 62%, 48% 100%, 0 100%);}
+    clip-path:polygon(0 0, 52% 0, 48% 100%, 0 100%);}
   #disc .dR{position:absolute; inset:0; background:var(--tint);
-    clip-path:polygon(52% 0, 100% 0, 100% 100%, 48% 100%, 48% 62%, 52% 38%);}
-  #logoLayer{position:absolute; left:50%; top:44%; width:216px; height:312px;
-    margin-left:-108px; margin-top:-156px; display:none; will-change:transform;}
+    clip-path:polygon(52% 0, 100% 0, 100% 100%, 48% 100%);}
+  #logoLayer{position:absolute; left:-108px; top:-156px; width:216px; height:312px; display:none;}
   #logoLayer img{position:absolute; left:0; top:0; width:216px; height:312px; will-change:transform;}
   /* ---- color picker bar ---- */
   #picker{position:fixed; left:0; right:0; bottom:0; background:rgba(255,255,255,.94);
@@ -88,10 +87,12 @@
 <div id="fx">
   <div class="colPanel" id="colL"></div>
   <div class="colPanel" id="colR"></div>
-  <div id="disc"><div class="dL"></div><div class="dR"></div></div>
-  <div id="logoLayer">
-    <img id="halfL" alt="">
-    <img id="halfR" alt="">
+  <div id="rotator">
+    <div id="disc"><div class="dL"></div><div class="dR"></div></div>
+    <div id="logoLayer">
+      <img id="halfL" alt="">
+      <img id="halfR" alt="">
+    </div>
   </div>
 </div>
 
@@ -172,11 +173,12 @@ async function switchMode(){
   var fx = document.getElementById('fx');
   var colL = document.getElementById('colL'), colR = document.getElementById('colR');
   var disc = document.getElementById('disc'), logo = document.getElementById('logoLayer');
+  var rotator = document.getElementById('rotator');
   var hL = document.getElementById('halfL'), hR = document.getElementById('halfR');
   fx.classList.add('on');
   colL.style.display='block'; colR.style.display='block';
   disc.style.display='none'; logo.style.display='block';
-  hL.style.transform=''; hR.style.transform=''; logo.style.transform='';
+  hL.style.transform=''; hR.style.transform=''; rotator.style.transform='';
 
   /* enter (~0.5s): colors + halves slide in */
   var e1 = colL.animate([{transform:'translateX(-106%)'},{transform:'translateX(0)'}],{duration:500,easing:'cubic-bezier(.22,.9,.3,1)',fill:'forwards'});
@@ -191,12 +193,11 @@ async function switchMode(){
   app.innerHTML = (mode === 'sale') ? SALE_HTML : LIVE_HTML;
   applyBodyClass();
 
-  /* spin (~0.7s): disc + logo rotate clockwise together */
+  /* spin (~0.7s): disc + logo rotate clockwise together around one shared center */
   colL.style.display='none'; colR.style.display='none';
   disc.style.display='block';
-  var s1 = disc.animate([{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{duration:700,easing:'cubic-bezier(.45,.05,.35,1)',fill:'forwards'});
-  var s2 = logo.animate([{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{duration:700,easing:'cubic-bezier(.45,.05,.35,1)',fill:'forwards'});
-  await Promise.all([s1.finished, s2.finished]);
+  var s1 = rotator.animate([{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{duration:700,easing:'cubic-bezier(.45,.05,.35,1)',fill:'forwards'});
+  await s1.finished;
   await wait(40);
 
   /* exit (~0.45s): colors leave with the halves, destination revealed from the center */
