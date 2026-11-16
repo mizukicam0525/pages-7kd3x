@@ -45,6 +45,17 @@
   .badge.site{background:var(--soft); color:var(--accent);}
   .name{font-size:14px; font-weight:700; margin-top:4px; line-height:1.4;}
   .meta{font-size:11px; color:var(--sub); margin-top:2px; line-height:1.5;}
+  /* ---- live-mode themes (destination tone follows the picker) ---- */
+  body.live.violet{ background:#f0eef7; }
+  body.live.violet .hero{ background:#e6e1f5; }
+  body.live.navy{ background:#1e2542; }
+  body.live.navy h1{ color:#f2f4ff; }
+  body.live.navy .updated, body.live.navy .note, body.live.navy .slot{ color:#a8b2d4; }
+  body.live.navy .hero{ background:#2d3a68; border-color:#3d4a7d; }
+  body.live.navy .hero .label{ color:#a8b2d4; }
+  body.live.navy .hero .big{ color:#f2f4ff; }
+  body.live.navy .modeBtn{ background:#2a3358; border-color:#3d4a7d; color:#f2f4ff; }
+  body.live.navy .tab{ border-color:#3d4a7d; }
   /* ---- transition overlay ---- */
   #fx{position:fixed; inset:0; overflow:hidden; pointer-events:none; display:none; z-index:50;}
   #fx.on{display:block;}
@@ -139,10 +150,16 @@ var busy = false;
 var app = document.getElementById('app');
 app.innerHTML = SALE_HTML;
 
+var tintName = 'navy';
+function applyBodyClass(){
+  document.body.className = (mode === 'live') ? ('live ' + tintName) : '';
+}
 function setTint(color, btn){
+  tintName = btn;
   document.documentElement.style.setProperty('--tint', color);
   document.getElementById('pickNavy').classList.toggle('active', btn==='navy');
   document.getElementById('pickViolet').classList.toggle('active', btn==='violet');
+  applyBodyClass();
 }
 document.getElementById('pickNavy').onclick = function(){ setTint('#1e2542','navy'); };
 document.getElementById('pickViolet').onclick = function(){ setTint('#bdb1e2','violet'); };
@@ -173,6 +190,7 @@ async function switchMode(){
   /* swap content under the colors */
   mode = (mode === 'sale') ? 'live' : 'sale';
   app.innerHTML = (mode === 'sale') ? SALE_HTML : LIVE_HTML;
+  applyBodyClass();
 
   /* spin (~0.7s): disc + logo rotate clockwise together */
   colL.style.display='none'; colR.style.display='none';
