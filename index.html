@@ -15,6 +15,25 @@
 </style>
 </head>
 <body>
-<iframe src="https://script.google.com/macros/s/AKfycbxTCTIc1kD4SCMIhleVNRoxdDc3Gf0Ir1KEZUbI5T_UhCmLAoiy7jCCgPVJl-BNzZ5eqQ/exec" title="チケ発リスト"></iframe>
+<iframe id="app" title="チケ発リスト"></iframe>
+<script>
+  // ライブ側テーマ色の保持は、このページ（表示側）の保存領域で行う。
+  // アプリ本体は iframe 内のため端末側保存が制限されるので、保存済みの色を
+  // 起動時に URL で渡し、色が変わったら postMessage で受け取って保存する。
+  var EXEC_URL = 'https://script.google.com/macros/s/AKfycbxTCTIc1kD4SCMIhleVNRoxdDc3Gf0Ir1KEZUbI5T_UhCmLAoiy7jCCgPVJl-BNzZ5eqQ/exec';
+  var tint = '';
+  try { tint = localStorage.getItem('ticketListTint') || ''; } catch (e) {}
+  if (tint !== 'violet' && tint !== 'navy') tint = '';
+  document.getElementById('app').src = EXEC_URL + (tint ? '?tint=' + tint : '');
+  window.addEventListener('message', function (e) {
+    var host = '';
+    try { host = new URL(e.origin).hostname; } catch (err) { return; }
+    if (!/\.script\.googleusercontent\.com$/.test(host)) return;
+    var v = e.data && e.data.ticketListTint;
+    if (v === 'violet' || v === 'navy') {
+      try { localStorage.setItem('ticketListTint', v); } catch (err) {}
+    }
+  });
+</script>
 </body>
 </html>
