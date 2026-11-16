@@ -71,14 +71,14 @@
     clip-path:polygon(52% 0, 100% 0, 100% 100%, 48% 100%);}
   #logoLayer{position:absolute; left:-108px; top:-156px; width:216px; height:312px; display:none;}
   #logoLayer img{position:absolute; left:0; top:0; width:216px; height:312px; will-change:transform;}
-  /* ---- color picker bar ---- */
-  #picker{position:fixed; left:0; right:0; bottom:0; background:rgba(255,255,255,.94);
-    border-top:1px solid var(--line); padding:10px 14px calc(10px + env(safe-area-inset-bottom));
-    display:flex; gap:8px; align-items:center; z-index:60;}
-  #picker .plabel{font-size:12px; color:var(--sub);}
-  .pbtn{border:1px solid var(--line); background:#fff; border-radius:999px;
-    padding:7px 14px; font-size:13px; cursor:pointer;}
-  .pbtn.active{background:var(--ink); color:#fff; font-weight:700;}
+  /* ---- tint swatches (bottom-right, unlabeled) ---- */
+  #picker{position:fixed; right:12px; bottom:calc(12px + env(safe-area-inset-bottom));
+    display:flex; gap:9px; z-index:60;}
+  .pbtn{width:26px; height:26px; border-radius:50%; border:2px solid #fff;
+    box-shadow:0 1px 4px rgba(0,0,0,.35); padding:0; cursor:pointer;}
+  #pickViolet{background:#cdc3ee;}
+  #pickNavy{background:#1e2542;}
+  .pbtn.active{box-shadow:0 0 0 2px #fff, 0 0 0 4px #8a8578, 0 1px 4px rgba(0,0,0,.35);}
 </style>
 </head>
 <body>
@@ -97,9 +97,8 @@
 </div>
 
 <div id="picker">
-  <span class="plabel">切り替え色:</span>
-  <button class="pbtn" id="pickNavy">ネイビー</button>
-  <button class="pbtn" id="pickViolet">紫</button>
+  <button class="pbtn" id="pickViolet" aria-label="紫"></button>
+  <button class="pbtn" id="pickNavy" aria-label="ネイビー"></button>
 </div>
 
 <script>
@@ -183,20 +182,22 @@ var busy = false;
 var app = document.getElementById('app');
 app.innerHTML = SALE_HTML;
 
-var tintName = 'navy';
+var tintName = 'violet';
+try { tintName = localStorage.getItem('modeMockTint') || 'violet'; } catch (e) {}
 function applyBodyClass(){
   document.body.className = (mode === 'live') ? ('live ' + tintName) : '';
 }
 function setTint(color, btn){
   tintName = btn;
+  try { localStorage.setItem('modeMockTint', btn); } catch (e) {}
   document.documentElement.style.setProperty('--tint', color);
   document.getElementById('pickNavy').classList.toggle('active', btn==='navy');
   document.getElementById('pickViolet').classList.toggle('active', btn==='violet');
   applyBodyClass();
 }
-document.getElementById('pickNavy').onclick = function(){ setTint('#1e2542','navy'); };
+document.getElementById('pickNavy').onclick = function(){ setTint(tintName === 'navy' ? '#1e2542' : '#cdc3ee', tintName); };
 document.getElementById('pickViolet').onclick = function(){ setTint('#cdc3ee','violet'); };
-setTint('#1e2542','navy');
+setTint(tintName === 'navy' ? '#1e2542' : '#cdc3ee', tintName);
 
 function wait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
 
