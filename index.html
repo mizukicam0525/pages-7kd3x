@@ -45,7 +45,7 @@
     aspect-ratio: 216 / 312; transform: translate(-50%, -50%); }
   #spLogo img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   #spFull { visibility: hidden; }
-  .spinning { animation: spSpin 1.6s linear infinite; }
+  .spinning { animation: spSpin .7s cubic-bezier(.45,.05,.35,1) infinite; }
   @keyframes spSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 </head>
@@ -130,7 +130,7 @@
   spApplyClips();
   window.addEventListener('resize', spApplyClips);
 
-  var SPIN_MS = 1600;
+  var SPIN_MS = 700;
   var spPhase = 'entering'; // entering -> spinning -> exiting -> done
   var spReady = false;
   var spinStartAt = 0;
