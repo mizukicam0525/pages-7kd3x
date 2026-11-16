@@ -28,7 +28,7 @@
   window.addEventListener('message', function (e) {
     var host = '';
     try { host = new URL(e.origin).hostname; } catch (err) { return; }
-    if (!/\.script\.googleusercontent\.com$/.test(host)) return;
+    if (!/script\.googleusercontent\.com$/.test(host)) return;
     var v = e.data && e.data.ticketListTint;
     if (v === 'violet' || v === 'navy') {
       try { localStorage.setItem('ticketListTint', v); } catch (err) {}
