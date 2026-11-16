@@ -149,17 +149,19 @@ var POLY = [[236,0],[111,125],[108.5,134],[108.5,186],[104,192],[6,296]];
 function boltPoints(ox, oy){
   var pts = POLY.map(function(p){ return [ox + p[0], oy + p[1]]; });
   var f = pts[0], s = pts[1];
-  var topX = f[0] + (s[0]-f[0]) * ((-80 - f[1]) / (s[1]-f[1]));
+  var topY = f[1] - 3000;
+  var topX = f[0] + (s[0]-f[0]) * ((topY - f[1]) / (s[1]-f[1]));
   var l = pts[pts.length-1], q = pts[pts.length-2];
-  var botX = l[0] + (l[0]-q[0]) * (80 / (l[1]-q[1]));
-  pts.unshift([topX, -80]);
-  pts.push([botX, l[1] + 80]);
+  var botY = l[1] + 3000;
+  var botX = l[0] + (l[0]-q[0]) * ((botY - l[1]) / (l[1]-q[1]));
+  pts.unshift([topX, topY]);
+  pts.push([botX, botY]);
   return pts;
 }
 function polyStr(pts, w, h, left){
   var body = pts.map(function(p){ return (p[0]/w*100).toFixed(2)+'% '+(p[1]/h*100).toFixed(2)+'%'; });
   if (left) return 'polygon(0% 0%, ' + body.join(', ') + ', 0% 100%)';
-  return 'polygon(' + body.join(', ') + ', 100% 0%, 100% 100%)';
+  return 'polygon(' + body.join(', ') + ', 100% 100%, 100% 0%)';
 }
 function applyClips(){
   var W = window.innerWidth, H = window.innerHeight;
