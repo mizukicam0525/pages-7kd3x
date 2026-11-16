@@ -46,7 +46,7 @@
   .name{font-size:14px; font-weight:700; margin-top:4px; line-height:1.4;}
   .meta{font-size:11px; color:var(--sub); margin-top:2px; line-height:1.5;}
   /* ---- live-mode themes (destination tone follows the picker) ---- */
-  body.live.violet{ background:#f0eef7; --accent:#5a4ea8; --soft:#e6e1f5; --chip:#e9e6f2; }
+  body.live.violet{ background:#cdc3ee; --accent:#5a4ea8; --soft:#e4def8; --chip:#ded7f4; }
   body.live.navy{ background:#1e2542; --accent:#4576d6; --accent-text:#c2d4ff; --soft:#2e3c6b; --chip:#2a3358; }
   body.live.navy h1{ color:#f2f4ff; }
   body.live.navy .updated, body.live.navy .note, body.live.navy .slot{ color:#a8b2d4; }
@@ -190,7 +190,7 @@ function setTint(color, btn){
   applyBodyClass();
 }
 document.getElementById('pickNavy').onclick = function(){ setTint('#1e2542','navy'); };
-document.getElementById('pickViolet').onclick = function(){ setTint('#bdb1e2','violet'); };
+document.getElementById('pickViolet').onclick = function(){ setTint('#cdc3ee','violet'); };
 setTint('#1e2542','navy');
 
 function wait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
