@@ -44,8 +44,6 @@
   #spLogo { position: absolute; left: -108px; top: -156px; width: 216px; height: 312px; visibility: hidden; }
   #spLogo img { position: absolute; left: 0; top: 0; width: 216px; height: 312px; will-change: transform; }
   #spFull { display: none; }
-  .spinning { animation: spSpin .7s cubic-bezier(.45,.05,.35,1) infinite; }
-  @keyframes spSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -129,7 +127,6 @@
   var SPIN_MS = 700;
   var spPhase = 'base'; // base -> entering -> spinning -> exiting -> done
   var spReady = false;
-  var spExitArmed = false;
   function spWait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   async function spEnter() {
@@ -152,33 +149,30 @@
     spColL.style.display = 'none'; spColR.style.display = 'none';
     spDisc.style.display = 'block';
     spBase.style.display = 'none';
-    spRot.classList.add('spinning');
     spPhase = 'spinning';
-    if (spReady) spArmExitFallback();
+    spSpinTurn();
   }
 
-  function spArmExitFallback() {
-    // 回転の途中では開かず、いまの1回転が元の向きに戻る切れ目で退場する。
-    // 正確な切れ目は animationiteration イベントで拾い、これはその保険。
-    if (spExitArmed) return;
-    spExitArmed = true;
-    var rest = SPIN_MS;
-    var anims = spRot.getAnimations ? spRot.getAnimations() : [];
-    if (anims.length && anims[0].startTime != null) {
-      var elapsed = performance.now() - anims[0].startTime;
-      rest = SPIN_MS - (elapsed % SPIN_MS);
-      if (rest < 60) rest += SPIN_MS;
-    }
-    setTimeout(function () { spBeginExit(); }, rest + 60);
+  // 回転は本体と同じく WAAPI で1回転ずつ回す。1回転が終わると回転側が
+  // 360度（=正立）の姿勢を保持したまま止まるので、クラスを外して止める
+  // 方式で起きていた「次の回転へ数フレーム進んでから0度へ戻る」画戻りが
+  // 出ない。準備ができていなければ次の1回転を続け、できていれば退場する。
+  function spSpinTurn() {
+    if (spPhase !== 'spinning') return;
+    var a = spRot.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: SPIN_MS, easing: 'cubic-bezier(.45,.05,.35,1)', fill: 'forwards' });
+    a.finished.then(function () {
+      if (spPhase !== 'spinning') return;
+      if (spReady) spBeginExit();
+      else spSpinTurn();
+    }, function () {
+      // アニメーションが中断された場合は塞ぎ続けずに開く。
+      if (spPhase === 'spinning') { splash.style.display = 'none'; spPhase = 'done'; }
+    });
   }
-  spRot.addEventListener('animationiteration', function () {
-    if (spReady && spPhase === 'spinning') spBeginExit();
-  });
 
   async function spBeginExit() {
     if (spPhase !== 'spinning') return;
     spPhase = 'exiting';
-    spRot.classList.remove('spinning');
     await spWait(40);
     spFull.style.display = 'none'; spHalfL.style.display = ''; spHalfR.style.display = '';
     spDisc.style.display = 'none';
@@ -196,7 +190,7 @@
   function spMarkReady() {
     if (spReady || spPhase === 'done' || spPhase === 'exiting') return;
     spReady = true;
-    if (spPhase === 'spinning') spArmExitFallback();
+    // 回転中なら、いまの1回転が終わる切れ目で退場する（spSpinTurn が見る）。
     // base／entering の間は入場が終わってから、最初の1回転の切れ目で退場する。
   }
   // まずアプリアイコンだけを見せ、そのあと両側から覆うように入場する。
