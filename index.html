@@ -118,6 +118,9 @@
   }
   function spApplyClips() {
     var w = window.innerWidth, h = window.innerHeight;
+    var dsPx = Math.max(w, h) * 2.6;
+    spDisc.style.width = dsPx + 'px';
+    spDisc.style.height = dsPx + 'px';
     var scr = spBoltPoints(w / 2 - 108, h * 0.44 - 156);
     spColL.style.clipPath = spPolyStr([[0, 0]].concat(scr, [[0, h]]));
     spColR.style.clipPath = spPolyStr(spShifted(scr, -2).concat([[w, h], [w, 0]]));
@@ -127,11 +130,12 @@
     spDR.style.clipPath = spPolyStr(spShifted(dpts, -2).concat([[ds, ds], [ds, 0]]));
     spFR.style.clipPath = spPolyStr(spShifted(dpts, -2).concat([[ds, ds], [ds, 0]]));
   }
+  // 寸法は起動時に px で固定する（iOS の URL バー伸縮で innerHeight と
+  // vmax がずれる瞬間に、円盤の継ぎ目だけがずれて見えるのを防ぐ）。
   spApplyClips();
-  window.addEventListener('resize', spApplyClips);
 
   var SPIN_MS = 700;
-  var spPhase = 'entering'; // entering -> spinning -> exiting -> done
+  var spPhase = 'base'; // base -> entering -> spinning -> exiting -> done
   var spReady = false;
   var spinStartAt = 0;
   function spEnter() {
@@ -162,21 +166,31 @@
       spRot.classList.add('spinning');
       spinStartAt = performance.now();
       spPhase = 'spinning';
-      if (spReady) spFinishAtBoundary();
+      if (spReady) spArmExitFallback();
     };
   }
-  function spFinishAtBoundary() {
+  var spExitArmed = false;
+  function spArmExitFallback() {
     // 回転の途中では開かず、いまの1回転が元の向きに戻る切れ目で退場する。
-    var elapsed = performance.now() - spinStartAt;
-    var rest = SPIN_MS - (elapsed % SPIN_MS);
-    if (rest < 60) rest += SPIN_MS;
-    setTimeout(spExit, rest);
+    // 正確な切れ目は animationiteration イベントで拾い、これはその保険。
+    if (spExitArmed) return;
+    spExitArmed = true;
+    var rest = SPIN_MS;
+    var anims = spRot.getAnimations ? spRot.getAnimations() : [];
+    if (anims.length && anims[0].startTime != null) {
+      var elapsed = performance.now() - anims[0].startTime;
+      rest = SPIN_MS - (elapsed % SPIN_MS);
+      if (rest < 60) rest += SPIN_MS;
+    }
+    setTimeout(spExit, rest + 60);
   }
+  spRot.addEventListener('animationiteration', function () {
+    if (spReady && spPhase === 'spinning') spExit();
+  });
   function spExit() {
     if (spPhase !== 'spinning') return;
     spPhase = 'exiting';
     spRot.classList.remove('spinning');
-    spRot.style.transform = 'rotate(0deg)';
     spFull.style.visibility = 'hidden';
     spHalfL.style.visibility = 'visible';
     spHalfR.style.visibility = 'visible';
@@ -205,10 +219,11 @@
   function spMarkReady() {
     if (spReady || spPhase === 'done' || spPhase === 'exiting') return;
     spReady = true;
-    if (spPhase === 'spinning') spFinishAtBoundary();
-    // entering の間は入場が終わってから、最初の1回転の切れ目で退場する。
+    if (spPhase === 'spinning') spArmExitFallback();
+    // base／entering の間は入場が終わってから、最初の1回転の切れ目で退場する。
   }
-  spEnter();
+  // まずアイコンだけを見せ、そのあと両側から覆うように入場する。
+  setTimeout(spEnter, 900);
   // 保険: 本体からの合図が来なくても、読み込み画面で塞ぎ続けない。
   var loadFallbackSet = false;
   appFrame.addEventListener('load', function () {
