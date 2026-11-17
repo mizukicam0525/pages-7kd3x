@@ -160,10 +160,17 @@
   function spSpinTurn() {
     if (spPhase !== 'spinning') return;
     var a = spRot.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: SPIN_MS, easing: 'cubic-bezier(.45,.05,.35,1)', fill: 'forwards' });
-    a.finished.then(function () {
+    a.finished.then(async function () {
       if (spPhase !== 'spinning') return;
-      if (spReady) spBeginExit();
-      else spSpinTurn();
+      // 1回転ごとに正立で静止させる。姿勢を通常のスタイルとして確定して
+      // からアニメーションを畳むので、終了通知と描画のタイミングがずれても
+      // 逆向きに戻ることはない。静止の間合いを置いてから次へ進む。
+      spRot.style.transform = 'rotate(0deg)';
+      a.cancel();
+      if (spReady) { spBeginExit(); return; }
+      await spWait(120);
+      if (spPhase !== 'spinning') return;
+      spSpinTurn();
     }, function () {
       // アニメーションが中断された場合は塞ぎ続けずに開く。
       if (spPhase === 'spinning') { splash.style.display = 'none'; spPhase = 'done'; }
@@ -173,7 +180,6 @@
   async function spBeginExit() {
     if (spPhase !== 'spinning') return;
     spPhase = 'exiting';
-    await spWait(40);
     spFull.style.display = 'none'; spHalfL.style.display = ''; spHalfR.style.display = '';
     spDisc.style.display = 'none';
     spColL.style.display = 'block'; spColR.style.display = 'block';
