@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>チケ発リスト（要確認表示モック）</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --card: #ffffff; --ink: #23241f; --sub: #6d6a5e;
+    --line: #e3ded2; --accent: #b3541e; --accent-soft: #f7e8dd;
+    --ok: #2e7d46; --warn: #a15c00; --chip: #efece3; --tint: #cdc3ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1d1f24; --card: #26282f; --ink: #ece9e0; --sub: #a3a091;
+      --line: #3a3d47; --accent: #e08a4e; --accent-soft: #3a2d22;
+      --ok: #6fce8b; --warn: #e0a44e; --chip: #32343d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 16px 14px 40px; }
+  header h1 { font-size: 20px; margin: 4px 0 2px; }
+  .headrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .headrow .chip { margin-left: auto; }
+  header .updated { color: var(--sub); font-size: 12px; }
+  .hero { background: var(--accent-soft); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 14px; margin: 12px 0; }
+  .hero .label { font-size: 12px; color: var(--sub); }
+  .hero .count { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .hero .next { font-size: 13px; margin-top: 2px; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+  .tab { border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+  .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tab .poolmark { font-size: 10px; opacity: .8; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 8px 0 14px; }
+  .chip { border: 1px solid var(--line); background: var(--chip); color: var(--ink);
+    border-radius: 999px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+  .chip.active { background: var(--ink); color: var(--bg); }
+  .filters select { font-size: 12px; padding: 4px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+  .filters label { font-size: 12px; color: var(--sub); }
+  .slot { font-size: 13px; font-weight: 700; color: var(--sub); margin: 16px 0 6px; }
+  .card { display: flex; gap: 12px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+  .left { width: 100px; flex: 0 0 100px; }
+  .time { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .datelab { font-size: 11px; color: var(--sub); }
+  .poster { display: block; width: 100%; height: auto; margin-top: 8px;
+    border: 1px solid var(--line); border-radius: 6px; }
+  .body { flex: 1; min-width: 0; }
+  .badges { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; }
+  .badge { font-size: 10px; padding: 2px 7px; border-radius: 999px;
+    background: var(--chip); color: var(--sub); }
+  .badge.main { background: var(--accent); color: #fff; }
+  .badge.pool { background: var(--warn); color: #fff; }
+  .badge.site { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  .name { font-size: 15px; font-weight: 700; line-height: 1.4; }
+  .name a { color: inherit; text-decoration: none; }
+  .meta { font-size: 12px; color: var(--sub); margin-top: 2px; line-height: 1.5; }
+  .ticket { font-size: 12px; margin-top: 4px; line-height: 1.5; }
+  .note { font-size: 12px; color: var(--warn); margin-top: 4px; line-height: 1.5; }
+  .testrow { margin-top: 8px; font-size: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .testrow button { font-size: 12px; padding: 3px 10px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+  .tested { color: var(--ok); font-weight: 700; }
+  .empty { color: var(--sub); font-size: 13px; padding: 18px 0; }
+  .addwatch { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 10px 0 4px; }
+  .addwatch input { font-size: 12px; padding: 5px 8px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+  .addwatch button { font-size: 12px; padding: 5px 12px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+  details.watch { margin-top: 26px; border-top: 1px solid var(--line); padding-top: 10px; }
+  details.watch summary { font-size: 13px; font-weight: 700; cursor: pointer; }
+  .watch ul { list-style: none; padding: 0; margin: 8px 0 0; columns: 2; }
+  .watch li { font-size: 12px; margin: 3px 0; break-inside: avoid; }
+  .watch a { color: var(--accent); text-decoration: none; }
+  @media (max-width: 560px) { .watch ul { columns: 1; } .left { width: 84px; flex-basis: 84px; } }
+  .poster { cursor: zoom-in; }
+  #lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.9);
+    display: none; align-items: center; justify-content: center; z-index: 9999; }
+  #lightbox.open { display: flex; }
+  #lightbox img { max-width: 96vw; max-height: 94vh; }
+  #lightboxClose { position: absolute; top: 10px; right: 16px; color: #fff;
+    font-size: 32px; line-height: 1; cursor: pointer; }
+  #calPanel { margin: 8px 0; border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px; max-width: 320px; background: var(--card); }
+  .cal-head { display: flex; justify-content: space-between; align-items: center;
+    font-weight: 700; margin-bottom: 6px; }
+  .cal-head button { border: 1px solid var(--line); background: var(--card);
+    color: var(--ink); border-radius: 6px; padding: 2px 10px; cursor: pointer; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-dow { text-align: center; font-size: 11px; color: var(--sub); padding: 2px 0; }
+  .cal-day { text-align: center; padding: 6px 0; font-size: 13px; border-radius: 6px;
+    border: none; background: none; color: var(--ink); cursor: pointer; }
+  .cal-day.has { background: var(--accent-soft); font-weight: 700; color: var(--accent); }
+  .cal-day.sel { outline: 2px solid var(--accent); }
+  .cal-day:disabled { color: var(--sub); opacity: .45; cursor: default; }
+  .cal-day.empty { visibility: hidden; }
+  .detailBtn { align-self: center; flex: none; border: none; background: none;
+    color: var(--sub); font-size: 26px; line-height: 1; padding: 10px 2px; cursor: pointer; }
+  .cFront, .cBack { transition: opacity .16s ease, transform .16s ease; }
+  .cBack { font-size: 12px; line-height: 1.5; }
+  .dHead { margin-bottom: 2px; font-size: 12px; }
+  .dSec { margin: 6px 0 2px; font-size: 12px; }
+  .cBack .inwatch { color: var(--accent); }
+  .dots { text-align: center; margin-top: 5px; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--line); margin: 0 4px; cursor: pointer; }
+  .dot.active { background: var(--accent); }
+  .reqHead { font-weight: 700; margin: 10px 0 4px; font-size: 13px; }
+
+  /* ---- ライブ側テーマ（v46） ---- */
+  body.live-violet { --bg: #cdc3ee; --accent: #5a4ea8; --accent-soft: #e4def8; --chip: #ded7f4; }
+  body.live-navy { --bg: #1e2542; --accent: #4576d6; --accent-soft: #2e3c6b; --chip: #2a3358; }
+  body.live-navy header h1, body.live-navy details.watch summary,
+  body.live-navy .reqHead, body.live-navy .watch li { color: #f2f4ff; }
+  body.live-navy .updated, body.live-navy #howItWorks, body.live-navy .slot,
+  body.live-navy .empty, body.live-navy .filters label { color: #a8b2d4; }
+  body.live-navy .hero { background: #2d3a68; border-color: #3a4a80; }
+  body.live-navy .hero .label { color: #a8b2d4; }
+  body.live-navy .hero .count, body.live-navy .hero .next { color: #f2f4ff; }
+  body.live-navy .chip { background: #2a3358; color: #e6ebff; border-color: #3a4a80; }
+  body.live-navy .chip.active { background: #e6ebff; color: #1e2542; }
+  body.live-navy .tab { border-color: #3a4a80; }
+  body.live-navy .tab.active { background: #4576d6; border-color: #4576d6; color: #fff; }
+  body.live-navy .badge.site { color: #c2d4ff; }
+  body.live-navy .cal-day.has { background: #dbe4ff; color: #2f5aa8; }
+  body.live-navy .watch a { color: #c2d4ff; }
+  body.live-navy details.watch { border-top-color: #3a4a80; }
+  /* ---- モード切替アニメーション（v46） ---- */
+  #fx { position: fixed; inset: 0; overflow: hidden; pointer-events: none; display: none; z-index: 10000; }
+  #fx.on { display: block; }
+  .colPanel { position: absolute; top: 0; bottom: 0; width: 100%; will-change: transform; }
+  #colL { background: #f6f4ef; }
+  #colR { background: var(--tint); }
+  #fxRotator { position: absolute; left: 50%; top: 44%; width: 0; height: 0; will-change: transform; }
+  #fxDisc { position: absolute; width: 260vmax; height: 260vmax; left: -130vmax; top: -130vmax; display: none; }
+  #fxDisc .dL { position: absolute; inset: 0; background: #f6f4ef; }
+  #fxDisc .dR { position: absolute; inset: 0; background: var(--tint); }
+  #fxLogo { position: absolute; left: -108px; top: -156px; width: 216px; height: 312px; display: none; }
+  #fxLogo img { position: absolute; left: 0; top: 0; width: 216px; height: 312px; will-change: transform; }
+  /* ---- 配色スウォッチ（ライブ時のみ・監視リスト右下） ---- */
+  .swrow { display: flex; justify-content: flex-end; gap: 7px; margin-top: 10px; }
+  .pbtn { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.35); padding: 0; cursor: pointer; }
+  #pickViolet { background: #cdc3ee; }
+  #pickNavy { background: #1e2542; }
+  .pbtn.active { box-shadow: 0 0 0 2px #fff, 0 0 0 3px #8a8578, 0 1px 3px rgba(0,0,0,.35); }
+
+  /* ---- 要確認セクション（モック追加分） ---- */
+  .revHead { font-size: 14px; font-weight: 700; color: var(--warn); margin: 24px 0 2px; }
+  .revSub { font-size: 12px; color: var(--sub); margin: 0 0 10px; line-height: 1.5; }
+  .card.review { border: 1.5px dashed var(--warn); }
+  .badge.rev { background: var(--warn); color: #fff; }
+  .revLink { display: block; background: #fdf3e3; border: 1px solid var(--line);
+    border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 13px;
+    color: var(--warn); font-weight: 700; text-decoration: none; }
+  html { scroll-behavior: smooth; }
+  .mockbar { background: #23241f; color: #f6f4ef; font-size: 12px; text-align: center; padding: 7px 10px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="mockbar">モックページ：要確認の表示イメージです。本番のアプリではありません（データは 2026-11-18 時点の実際の内容）。</div>
+<div class="wrap">
+ <div id="viewSale">
+  <header>
+    <div class="headrow"><h1>チケ発リスト</h1><button class="chip">ライブ予定リストに切り替え</button></div>
+    <div class="updated">2026-11-18 09:36 更新</div>
+  </header>
+  <div class="meta">更新の仕組み: 毎日10:00／22:00にAIがXの告知を巡回してチケ発を検知し、10:30／22:30にイベントページを確認して確定します。</div>
+  <div class="hero">
+    <div class="label">次の販売開始まで</div>
+    <div class="count" id="count">--:--:--</div>
+    <div class="next">2026-11-18 19:00 藤木愛 生誕祭2026</div>
+  </div>
+  <a class="revLink" id="revLink" href="#">要確認が1件あります ›</a>
+  <div style="margin-top:10px"><button class="chip">過去のチケ発</button></div>
+  <div class="tabs"><button class="tab active">11/18</button><button class="tab">11/19</button><button class="tab">11/20</button><button class="tab">11/21</button><button class="tab">11/22</button><button class="tab">11/23</button><button class="tab">11/24</button><button class="tab">11/26</button></div>
+  <div class="filters">
+    <button class="chip site-chip active">全サイト</button>
+    <button class="chip site-chip">TicketDive</button>
+    <button class="chip site-chip">Tiget</button>
+    <button class="chip site-chip">LivePocket</button>
+    <select><option>支払方法：すべて</option></select>
+    <label><input type="checkbox"> テスト向きのみ</label>
+  </div>
+  <div class="slot">19時台</div>
+  <div class="card">
+    <div class="left"><div class="time">19:00</div><div class="datelab">2026-11-18 開始</div><img class="poster" src="https://storage.googleapis.com/playyte-ticket-prod_event/I7yE7dooCpDJ3363sv6W_482701_1794633902346.webp" alt="" loading="lazy"></div>
+    <div class="body"><div class="badges"><span class="badge main">主候補</span><span class="badge site">TicketDive</span><span class="badge">カード以外可</span><span class="badge">抽選併設</span></div>
+    <div class="name"><a href="https://t-dv.com/mana_hpb2026" target="_blank" rel="noopener">藤木愛 生誕祭2026</a></div>
+    <div class="meta">公演日 2026-12-12 ZephyrHall</div>
+    <div class="cFront">
+    <div class="meta">支払方法: クレジットカード/デビット/プリペイド、コンビニ払い（セブン-イレブンを除く）</div>
+    <div class="meta">出演（監視リスト内）: THE ENCORE</div>
+    <div class="ticket">Sチケット ¥10,000／Aチケット ¥5,000／Bチケット ¥1,500</div>
+    </div>
+    <div class="dots"><span class="dot active"></span><span class="dot"></span></div>
+    </div>
+    <button class="detailBtn" type="button">›</button></div>
+  <div class="slot">21時台</div>
+  <div class="card">
+    <div class="left"><div class="time">21:30</div><div class="datelab">2026-11-18 開始</div><img class="poster" src="https://storage.googleapis.com/playyte-ticket-prod_event/hzsyeJVthg6Sdo1YKi48_731313_1794914226627.webp" alt="" loading="lazy"></div>
+    <div class="body"><div class="badges"><span class="badge main">主候補</span><span class="badge site">TicketDive</span><span class="badge">カード以外可</span><span class="badge">抽選併設</span></div>
+    <div class="name"><a href="https://t-dv.com/1123NonstopLive" target="_blank" rel="noopener">メイビーME単独公演 ノンストップライブ!!!</a></div>
+    <div class="meta">公演日 2026-11-23 SHIBUYA VIDENT</div>
+    <div class="cFront">
+    <div class="meta">支払方法: クレジットカード/デビット/プリペイド、コンビニ払い（セブン-イレブンを除く）</div>
+    <div class="meta">出演（監視リスト内）: メイビーME</div>
+    <div class="ticket">前方チケット ¥3,000／一般チケット ¥1,500</div>
+    </div>
+    <div class="dots"><span class="dot active"></span><span class="dot"></span></div>
+    </div>
+    <button class="detailBtn" type="button">›</button></div>
+ </div><!-- /viewSale -->
+ <div id="viewReview" style="display:none">
+  <div style="margin-bottom:10px"><button class="chip" id="backSale">‹ チケ発リストに戻る</button></div>
+  <header>
+    <div class="headrow"><h1>要確認</h1></div>
+    <div class="updated">イベントページで確定できなかった販売です。先着か抽選かなどが未確認のため、カウントダウンには含めていません。</div>
+  </header>
+  <div class="slot">2026-11-18</div>
+  <div class="card review">
+    <div class="left"><div class="time">22:00</div><div class="datelab">2026-11-18 開始</div></div>
+    <div class="body"><div class="badges"><span class="badge rev">要確認</span><span class="badge site">TicketDive</span></div>
+    <div class="name"><a href="https://t-dv.com/hllove1130" target="_blank" rel="noopener">ハニースパイスRe.</a></div>
+    <div class="meta">11月30日（月）『 ハロプロ育ち！16ビートの集い 』🎪TwinBox AKIHABARA 💴前売2500円/当日3000円(1ドリンク代別途) 🎁チェキ券 🎫t-dv.com/hllove1130 《出演》20:00-20:20 《物販》20:30-21:40 チケット販売📢：11月18日（水） 22:00〜</div>
+    <div class="note">先着か抽選か判別できず</div>
+    </div></div>
+ </div><!-- /viewReview -->
+  <details class="watch">
+    <summary>監視対象アカウント</summary>
+  </details>
+</div>
+<script>
+document.getElementById('revLink').addEventListener('click', function (e) {
+  e.preventDefault();
+  document.getElementById('viewSale').style.display = 'none';
+  document.getElementById('viewReview').style.display = '';
+  window.scrollTo(0, 0);
+});
+document.getElementById('backSale').addEventListener('click', function () {
+  document.getElementById('viewReview').style.display = 'none';
+  document.getElementById('viewSale').style.display = '';
+  window.scrollTo(0, 0);
+});
+function tick() {
+  var t = new Date('2026-11-18T19:00:00+09:00') - new Date();
+  var el = document.getElementById('count');
+  if (t <= 0) { el.textContent = '開始しました'; return; }
+  var s = Math.floor(t / 1000);
+  var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
+  el.textContent = (d > 0 ? d + '日 ' : '') + ('0' + h).slice(-2) + ':' + ('0' + m).slice(-2) + ':' + ('0' + ss).slice(-2);
+}
+tick(); setInterval(tick, 1000);
+</script>
+</body>
+</html>
