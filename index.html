@@ -230,6 +230,15 @@
       try { c = localStorage.getItem('ticketListCache') || ''; } catch (err) {}
       if (c) { try { e.source.postMessage({ ticketListCacheData: c }, '*'); } catch (err) {} }
     }
+    // お気に入りリストも同じ仕組みで殻側に保持する（本体の iframe 内の保存は端末に残らないため）。
+    if (e.data && e.data.ticketListFavSave != null) {
+      try { localStorage.setItem('ticketListFavGroups', String(e.data.ticketListFavSave)); } catch (err) {}
+    }
+    if (e.data && e.data.ticketListFavRequest && e.source) {
+      var f = '';
+      try { f = localStorage.getItem('ticketListFavGroups') || ''; } catch (err) {}
+      try { e.source.postMessage({ ticketListFavData: f }, '*'); } catch (err) {}
+    }
     // 本体の初回表示ができたら、読み込み画面の退場を開始する。
     if (e.data && e.data.ticketListReady) spMarkReady();
   });
